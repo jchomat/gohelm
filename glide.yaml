@@ -1,0 +1,6 @@
+package: gitlab.com/pablo-ruth/gohelm
+import:
+- package: k8s.io/client-go
+  version: kubernetes-1.10.0
+- package: github.com/pablo-ruth/gok8s
+- package: google.golang.org/grpc
