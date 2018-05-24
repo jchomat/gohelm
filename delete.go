@@ -1,7 +1,7 @@
 package gohelm
 
 import (
-	"log"
+	"fmt"
 
 	tiller "k8s.io/helm/pkg/proto/hapi/services"
 )
@@ -24,7 +24,7 @@ func (c *Client) DeleteReleasesInNamespace(namespace string) error {
 	}
 
 	if rec.Count == 0 {
-		log.Printf("No helm release to delete in namespace %s\n", namespace)
+		return nil
 	}
 
 	// Delete releases in current namespace
@@ -35,10 +35,9 @@ func (c *Client) DeleteReleasesInNamespace(namespace string) error {
 		}
 		_, err := sv.UninstallRelease(c.Context, uniReq)
 		if err != nil {
-			log.Printf("Failed to uninstall release %s: %s\n", release.GetName(), err)
+			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
 			continue
 		}
-		log.Printf("Release %s uninstalled\n", release.GetName())
 	}
 
 	return nil
