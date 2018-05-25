@@ -28,6 +28,8 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 			return allReleases, err
 		}
 
+		offset = rec.Releases[len(rec.Releases)-1].Name
+
 		allReleases = append(allReleases, rec.Releases...)
 
 		if rec.Count < 10 {
