@@ -34,9 +34,9 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 
 		allReleases = append(allReleases, rec.Releases...)
 
-		fmt.Printf(offset)
+		fmt.Printf("Offset: %s\n", offset)
 
-		if len(allReleases) > 20 {
+		if len(allReleases) > 50 {
 			break
 		}
 
