@@ -1,6 +1,8 @@
 package gohelm
 
 import (
+	"fmt"
+
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
@@ -28,10 +30,16 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 			return allReleases, err
 		}
 
-		offset = rec.Releases[len(rec.Releases)-1].Name
+		offset = rec.Releases[len(rec.Releases)-1].GetName()
 
 		allReleases = append(allReleases, rec.Releases...)
-		break
+
+		fmt.Printf(offset)
+
+		if len(allReleases) > 20 {
+			break
+		}
+
 		if rec.Count < 10 {
 			break
 		}
