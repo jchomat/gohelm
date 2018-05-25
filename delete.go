@@ -3,7 +3,6 @@ package gohelm
 import (
 	"fmt"
 
-	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
@@ -11,7 +10,7 @@ func (c *Client) DeleteRelease(name string) error {
 	sv := services.NewReleaseServiceClient(c.Conn)
 
 	uniReq := &services.UninstallReleaseRequest{
-		Name:  release.GetName(),
+		Name:  name,
 		Purge: true,
 	}
 	_, err := sv.UninstallRelease(c.Context, uniReq)
