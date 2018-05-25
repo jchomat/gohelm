@@ -36,7 +36,7 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 
 		fmt.Printf("Offset: %s\n", offset)
 
-		if len(allReleases) > 80 {
+		if len(allReleases) > 200 {
 			break
 		}
 
