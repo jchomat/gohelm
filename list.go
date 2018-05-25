@@ -18,7 +18,7 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 		// Get Helm releases with specific status
 		realReq := &services.ListReleasesRequest{
 			StatusCodes: []release.Status_Code{release.Status_DELETED},
-			Limit:       50,
+			Limit:       20,
 			Offset:      offset,
 		}
 		res, err := sv.ListReleases(c.Context, realReq)
