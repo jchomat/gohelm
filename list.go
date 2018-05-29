@@ -1,13 +1,14 @@
 package gohelm
 
 import (
+	"context"
 	"fmt"
 
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
-func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
+func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Status_Code) ([]*release.Release, error) {
 
 	var allReleases []*release.Release
 	var offset string
@@ -17,11 +18,11 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 	for {
 		// Get Helm releases with specific status
 		realReq := &services.ListReleasesRequest{
-			StatusCodes: []release.Status_Code{release.Status_DELETED},
+			StatusCodes: status,
 			Limit:       10,
 			Offset:      offset,
 		}
-		res, err := sv.ListReleases(c.Context, realReq)
+		res, err := sv.ListReleases(ctx, realReq)
 		if err != nil {
 			return allReleases, err
 		}
@@ -36,12 +37,15 @@ func (c *Client) ListReleasesByStatus(status int) ([]*release.Release, error) {
 
 		fmt.Printf("Offset: %s\n", offset)
 
-		if len(allReleases) > 200 {
+		if rec.Count < 10 {
 			break
 		}
 
-		if rec.Count < 10 {
+		select {
+		case <-ctx.Done():
 			break
+		default:
+			continue
 		}
 	}
 
