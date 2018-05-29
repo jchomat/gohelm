@@ -36,15 +36,14 @@ func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Stat
 			return allReleases, err
 		}
 
-		offset = rec.Releases[len(rec.Releases)-1].GetName()
-
 		allReleases = append(allReleases, rec.Releases...)
-
-		fmt.Printf("Offset: %s\n", offset)
 
 		if rec.Count < 10 {
 			break
 		}
+
+		offset = rec.Releases[len(rec.Releases)-1].GetName()
+		fmt.Printf("Offset: %s\n", offset)
 
 		select {
 		case <-helmCtx.Done():
