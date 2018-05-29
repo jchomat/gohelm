@@ -27,13 +27,11 @@ Package gohelm implements a Helm client.
 package gohelm
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/pablo-ruth/gok8s"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -44,7 +42,6 @@ type Client struct {
 	Version string
 	Tunnel  *gok8s.Tunnel
 	Conn    *grpc.ClientConn
-	Context context.Context
 }
 
 // NewClient initializes a new Helm client
@@ -64,10 +61,6 @@ func NewClient(version, namespace string, k8sclient *kubernetes.Clientset, k8sco
 		return nil, err
 	}
 	client.Tunnel = tunnel
-
-	// Config helm version header
-	md := metadata.Pairs("x-helm-api-client", client.Version)
-	client.Context = metadata.NewOutgoingContext(context.Background(), md)
 
 	// Init GRPC client to Tiller
 	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", tunnel.Local), grpc.WithInsecure())

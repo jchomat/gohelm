@@ -24,7 +24,7 @@ func (c *Client) DeleteRelease(ctx context.Context, name string) error {
 	return err
 }
 
-func (c *Client) DeleteReleasesInNamespace(namespace string) error {
+func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string) error {
 	// Get Helm release in current namespace
 	realReq := &services.ListReleasesRequest{
 		SortBy:    services.ListSort_NAME,
@@ -32,7 +32,12 @@ func (c *Client) DeleteReleasesInNamespace(namespace string) error {
 		Namespace: namespace,
 	}
 	sv := services.NewReleaseServiceClient(c.Conn)
-	res, err := sv.ListReleases(c.Context, realReq)
+
+	// Config helm version header
+	md := metadata.Pairs("x-helm-api-client", c.Version)
+	helmCtx := metadata.NewOutgoingContext(ctx, md)
+
+	res, err := sv.ListReleases(helmCtx, realReq)
 	if err != nil {
 		return err
 	}
@@ -51,7 +56,7 @@ func (c *Client) DeleteReleasesInNamespace(namespace string) error {
 			Name:  release.GetName(),
 			Purge: true,
 		}
-		_, err := sv.UninstallRelease(c.Context, uniReq)
+		_, err := sv.UninstallRelease(helmCtx, uniReq)
 		if err != nil {
 			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
 			continue
