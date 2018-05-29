@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc/metadata"
 	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
@@ -12,6 +13,10 @@ func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Stat
 
 	var allReleases []*release.Release
 	var offset string
+
+	// Config helm version header
+	md := metadata.Pairs("x-helm-api-client", c.Version)
+	helmCtx := metadata.NewOutgoingContext(ctx, md)
 
 	sv := services.NewReleaseServiceClient(c.Conn)
 
@@ -22,7 +27,7 @@ func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Stat
 			Limit:       10,
 			Offset:      offset,
 		}
-		res, err := sv.ListReleases(ctx, realReq)
+		res, err := sv.ListReleases(helmCtx, realReq)
 		if err != nil {
 			return allReleases, err
 		}
@@ -42,7 +47,7 @@ func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Stat
 		}
 
 		select {
-		case <-ctx.Done():
+		case <-helmCtx.Done():
 			break
 		default:
 			continue

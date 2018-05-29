@@ -4,17 +4,22 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc/metadata"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
 func (c *Client) DeleteRelease(ctx context.Context, name string) error {
 	sv := services.NewReleaseServiceClient(c.Conn)
 
+	// Config helm version header
+	md := metadata.Pairs("x-helm-api-client", c.Version)
+	helmCtx := metadata.NewOutgoingContext(ctx, md)
+
 	uniReq := &services.UninstallReleaseRequest{
 		Name:  name,
 		Purge: true,
 	}
-	_, err := sv.UninstallRelease(ctx, uniReq)
+	_, err := sv.UninstallRelease(helmCtx, uniReq)
 
 	return err
 }
