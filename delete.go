@@ -1,19 +1,20 @@
 package gohelm
 
 import (
+	"context"
 	"fmt"
 
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
-func (c *Client) DeleteRelease(name string) error {
+func (c *Client) DeleteRelease(ctx context.Context, name string) error {
 	sv := services.NewReleaseServiceClient(c.Conn)
 
 	uniReq := &services.UninstallReleaseRequest{
 		Name:  name,
 		Purge: true,
 	}
-	_, err := sv.UninstallRelease(c.Context, uniReq)
+	_, err := sv.UninstallRelease(ctx, uniReq)
 
 	return err
 }
