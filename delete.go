@@ -65,10 +65,10 @@ func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string
 
 	// Delete releases in current namespace
 	for _, release := range releases {
-		uniReq := &services.UninstallReleaseRequest{
-			Name:  release.GetName(),
-			Purge: true,
-		}
+		//		uniReq := &services.UninstallReleaseRequest{
+		//			Name:  release.GetName(),
+		//			Purge: true,
+		//		}
 		log.Printf("Will delete %s release", release.GetName())
 		//		_, err := sv.UninstallRelease(helmCtx, uniReq)
 		//		if err != nil {
