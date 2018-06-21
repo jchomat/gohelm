@@ -39,11 +39,11 @@ func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string
 
 	res, err := sv.ListReleases(helmCtx, realReq)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to list release: %s", err)
 	}
 	rec, err := res.Recv()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read release list grpc response: %s", err)
 	}
 
 	if rec.Count == 0 {
