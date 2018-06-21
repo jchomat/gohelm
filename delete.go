@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 
 	"google.golang.org/grpc/metadata"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -65,16 +64,16 @@ func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string
 
 	// Delete releases in current namespace
 	for _, release := range releases {
-		//		uniReq := &services.UninstallReleaseRequest{
-		//			Name:  release.GetName(),
-		//			Purge: true,
-		//		}
-		log.Printf("Will delete %s release", release.GetName())
-		//		_, err := sv.UninstallRelease(helmCtx, uniReq)
-		//		if err != nil {
-		//			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
-		//			continue
-		//		}
+		uniReq := &services.UninstallReleaseRequest{
+			Name:  release.GetName(),
+			Purge: true,
+		}
+
+		_, err := sv.UninstallRelease(helmCtx, uniReq)
+		if err != nil {
+			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
+			continue
+		}
 	}
 
 	return nil
