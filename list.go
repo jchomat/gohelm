@@ -3,6 +3,7 @@ package gohelm
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"google.golang.org/grpc/metadata"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -11,39 +12,33 @@ import (
 
 func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Status_Code) ([]*release.Release, error) {
 
-	var allReleases []*release.Release
-	var offset string
+	// Get Helm releases with specific status
+	realReq := &services.ListReleasesRequest{
+		StatusCodes: status,
+	}
+	sv := services.NewReleaseServiceClient(c.Conn)
 
 	// Config helm version header
 	md := metadata.Pairs("x-helm-api-client", c.Version)
 	helmCtx := metadata.NewOutgoingContext(ctx, md)
 
-	sv := services.NewReleaseServiceClient(c.Conn)
+	res, err := sv.ListReleases(helmCtx, realReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release: %s", err)
+	}
 
+	var releases []*release.Release
 	for {
-		// Get Helm releases with specific status
-		realReq := &services.ListReleasesRequest{
-			StatusCodes: status,
-			Limit:       10,
-			Offset:      offset,
-		}
-		res, err := sv.ListReleases(helmCtx, realReq)
-		if err != nil {
-			return allReleases, err
-		}
 		rec, err := res.Recv()
-		if err != nil {
-			return allReleases, err
-		}
-
-		allReleases = append(allReleases, rec.Releases...)
-
-		if rec.Count < 10 {
+		if err == io.EOF {
 			break
 		}
 
-		offset = rec.Releases[len(rec.Releases)-1].GetName()
-		fmt.Printf("Offset: %s\n", offset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read release list grpc response: %s", err)
+		}
+
+		releases = append(releases, rec.Releases...)
 
 		select {
 		case <-helmCtx.Done():
@@ -53,5 +48,5 @@ func (c *Client) ListReleasesByStatus(ctx context.Context, status []release.Stat
 		}
 	}
 
-	return allReleases, nil
+	return releases, nil
 }
