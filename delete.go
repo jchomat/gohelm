@@ -3,8 +3,11 @@ package gohelm
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 
 	"google.golang.org/grpc/metadata"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
@@ -41,26 +44,37 @@ func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string
 	if err != nil {
 		return fmt.Errorf("failed to list release: %s", err)
 	}
-	rec, err := res.Recv()
-	if err != nil {
-		return fmt.Errorf("failed to read release list grpc response: %s", err)
+
+	var releases []*release.Release
+	for {
+		rec, err := res.Recv()
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return fmt.Errorf("failed to read release list grpc response: %s", err)
+		}
+
+		releases = append(releases, rec.GetReleases())
 	}
 
-	if rec.Count == 0 {
+	if len(releases) == 0 {
 		return nil
 	}
 
 	// Delete releases in current namespace
-	for _, release := range rec.Releases {
+	for _, release := range releases {
 		uniReq := &services.UninstallReleaseRequest{
 			Name:  release.GetName(),
 			Purge: true,
 		}
-		_, err := sv.UninstallRelease(helmCtx, uniReq)
-		if err != nil {
-			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
-			continue
-		}
+		log.Printf("Will delete %s release", release.GetName())
+		//		_, err := sv.UninstallRelease(helmCtx, uniReq)
+		//		if err != nil {
+		//			fmt.Errorf("Failed to uninstall release %s: %s\n", release.GetName(), err)
+		//			continue
+		//		}
 	}
 
 	return nil
