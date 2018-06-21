@@ -56,7 +56,7 @@ func (c *Client) DeleteReleasesInNamespace(ctx context.Context, namespace string
 			return fmt.Errorf("failed to read release list grpc response: %s", err)
 		}
 
-		releases = append(releases, rec.GetReleases())
+		releases = append(releases, rec.Releases...)
 	}
 
 	if len(releases) == 0 {
