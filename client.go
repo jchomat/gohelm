@@ -77,7 +77,7 @@ func NewClientFromCluster(version, namespace string, k8sclient *kubernetes.Clien
 	client := &Client{Version: version}
 
 	// Find Tiller pod
-	podIP, err := getTillerPodName(k8sclient, namespace)
+	podIP, err := getTillerPodIP(k8sclient, namespace)
 	if err != nil {
 		return nil, err
 	}
