@@ -72,6 +72,26 @@ func NewClient(version, namespace string, k8sclient *kubernetes.Clientset, k8sco
 	return client, nil
 }
 
+// NewClientFromCluster initializes a new Helm client from inside
+func NewClientFromCluster(version, namespace string, k8sclient *kubernetes.Clientset, k8sconfig *rest.Config) (*Client, error) {
+	client := &Client{Version: version}
+
+	// Find Tiller pod
+	podIP, err := getTillerPodName(k8sclient, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	// Init GRPC client to Tiller
+	conn, err := grpc.Dial(fmt.Sprintf("%s:44134", podIP), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	client.Conn = conn
+
+	return client, nil
+}
+
 // Close connection to helm
 func (c *Client) Close() error {
 	err := c.Conn.Close()
@@ -96,4 +116,22 @@ func getTillerPodName(k8sclient *kubernetes.Clientset, namespace string) (string
 	}
 
 	return pods.Items[0].GetName(), nil
+}
+
+// getTillerPodIP returns the IP of the first Tiller pod in this cluster/namespace
+func getTillerPodIP(k8sclient *kubernetes.Clientset, namespace string) (string, error) {
+	listOpts := metav1.ListOptions{
+		LabelSelector: "app=helm,name=tiller",
+	}
+
+	pods, err := k8sclient.CoreV1().Pods(namespace).List(listOpts)
+	if err != nil {
+		return "", err
+	}
+
+	if len(pods.Items) == 0 {
+		return "", errors.New("No tiller pod found")
+	}
+
+	return pods.Items[0].Status.PodIP, nil
 }
