@@ -95,7 +95,10 @@ func NewClientFromCluster(version, namespace string, k8sclient *kubernetes.Clien
 // Close connection to helm
 func (c *Client) Close() error {
 	err := c.Conn.Close()
-	c.Tunnel.Close()
+
+	if c.Tunnel != nil {
+		c.Tunnel.Close()
+	}
 
 	return err
 }
